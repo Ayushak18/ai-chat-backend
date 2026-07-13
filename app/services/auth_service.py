@@ -4,8 +4,8 @@ from app.schemas.auth import RegisterRequest
 
 class AuthService:
 
-    def __init__(self):
-        self.user_repository = UserRepository()
+    def __init__(self, user_repository: UserRepository):
+        self.user_repository = user_repository
 
     def register(self, request: RegisterRequest):
         existing_user = self.user_repository.get_user_by_email(request.email)
@@ -17,8 +17,8 @@ class AuthService:
         return {
             "message": "User registered successfully.",
             "user": {
-                "id": new_user["id"],
-                "name": new_user["name"],
-                "email": new_user["email"],
+                "id": new_user.id,
+                "name": new_user.name,
+                "email": new_user.email,
             },
         }
