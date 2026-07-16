@@ -1,5 +1,6 @@
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import RegisterRequest
+from app.utils.password import hash_password
 
 
 class AuthService:
@@ -13,6 +14,7 @@ class AuthService:
             return {
                 "message": "User with this email already exists.",
             }
+        request.password = hash_password(request.password)
         new_user = self.user_repository.create_user(request)
         return {
             "message": "User registered successfully.",

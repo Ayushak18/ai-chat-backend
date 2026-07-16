@@ -11,4 +11,3 @@ class User(Base):
     email: Mapped[str] = mapped_column()
     password: Mapped[str] = mapped_column()
     phone: Mapped[str] = mapped_column(nullable=True)
-    address: Mapped[str] = mapped_column(nullable=True)
