@@ -1,6 +1,8 @@
+from fastapi import HTTPException
+
 from app.repositories.user_repository import UserRepository
-from app.schemas.auth import RegisterRequest
-from app.utils.password import hash_password
+from app.schemas.auth import LoginRequest, RegisterRequest
+from app.utils.password import hash_password, verify_password
 
 
 class AuthService:
@@ -24,3 +26,14 @@ class AuthService:
                 "email": new_user.email,
             },
         }
+
+    def login(self, request: LoginRequest):
+        user = self.user_repository.get_user_by_email(request.email)
+
+        if user is None:
+            raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+        if not verify_password(request.password, user.password):
+            raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+        return {"message": "Login successful"}
