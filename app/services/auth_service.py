@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import LoginRequest, RegisterRequest
 from app.utils.password import hash_password, verify_password
+from app.utils.jwt import create_access_token
 
 
 class AuthService:
@@ -36,4 +37,9 @@ class AuthService:
         if not verify_password(request.password, user.password):
             raise HTTPException(status_code=401, detail="Invalid email or password.")
 
-        return {"message": "Login successful"}
+        access_token = create_access_token({"sub": str(user.id)})
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
