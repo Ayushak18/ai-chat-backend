@@ -1,5 +1,6 @@
-from jose import jwt
+from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
+from fastapi import HTTPException
 
 SECRET_KEY = "your-super-secret-development-key"
 ALGORITHM = "HS256"
@@ -23,5 +24,11 @@ def create_access_token(data: dict) -> str:
 
 
 def verify_access_token(token: str) -> dict:
-    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    return payload
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Could not validate credentials",
+        )
