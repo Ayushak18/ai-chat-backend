@@ -5,10 +5,10 @@ from app.dependencies.repository import get_conversation_service
 from app.schemas.conversation import ConversationResponse
 from app.services.conversation_service import ConversationService
 
-router = APIRouter(prefix="/conversation", tags=["conversation"])
+router = APIRouter(prefix="/conversations", tags=["conversation"])
 
 
-@router.get("/")
+@router.get("/", response_model=list[ConversationResponse])
 def get_conversations(
     current_user: User = Depends(get_current_user),
     conversation_service: ConversationService = Depends(get_conversation_service),
