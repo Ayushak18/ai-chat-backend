@@ -1,5 +1,5 @@
 from app.enum.message_role import MessageRole
-from app.repositories.messsage_repository import MessageRepository
+from app.repositories.message_repository import MessageRepository
 from app.database.models import Message
 
 
