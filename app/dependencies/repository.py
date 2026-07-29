@@ -33,5 +33,6 @@ def get_message_repository(db: Session = Depends(get_db)) -> MessageRepository:
 
 def get_message_service(
     message_repository: MessageRepository = Depends(get_message_repository),
+    conversation_service: ConversationService = Depends(get_conversation_service),
 ) -> MessageService:
-    return MessageService(message_repository)
+    return MessageService(message_repository, conversation_service)
