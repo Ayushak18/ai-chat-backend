@@ -7,6 +7,7 @@ from app.repositories.conversation_repository import ConversationRepository
 from app.services.conversation_service import ConversationService
 from app.repositories.message_repository import MessageRepository
 from app.services.message_service import MessageService
+from app.services.chat_service import ChatService
 
 
 def get_user_repository(db: Session = Depends(get_db)) -> UserRepository:
@@ -36,3 +37,10 @@ def get_message_service(
     conversation_service: ConversationService = Depends(get_conversation_service),
 ) -> MessageService:
     return MessageService(message_repository, conversation_service)
+
+
+def get_chat_service(
+    conversation_service: ConversationService = Depends(get_conversation_service),
+    message_service: MessageService = Depends(get_message_service),
+) -> ChatService:
+    return ChatService(conversation_service, message_service)
