@@ -25,3 +25,10 @@ class ConversationRepository:
         statement = select(Conversation).where(Conversation.user_id == user_id)
         result = self.db.execute(statement)
         return result.scalars().all()
+
+    def create_conversation(self, title: str, user_id: int) -> Conversation:
+        new_conversation = Conversation(title=title, user_id=user_id)
+        self.db.add(new_conversation)
+        self.db.commit()
+        self.db.refresh(new_conversation)
+        return new_conversation

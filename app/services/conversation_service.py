@@ -19,3 +19,9 @@ class ConversationService:
             user_id
         )
         return conversation
+
+    def create_conversation(self, title: str, user_id: int) -> Conversation:
+        return self.conversation_repository.create_conversation(
+            title=title,
+            user_id=user_id,
+        )
