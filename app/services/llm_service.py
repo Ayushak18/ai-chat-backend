@@ -5,7 +5,7 @@ from app.config.settings import settings
 class LLMService:
 
     def __init__(self):
-        self.client = Groq(api_key=settings.groq_api_key)
+        self.client = Groq(api_key=settings.llm_api_key)
 
     def generate_response(self, prompt: str) -> str:
         response = self.client.chat.completions.create(

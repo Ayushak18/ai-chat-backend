@@ -3,14 +3,19 @@ from app.services.message_service import MessageService
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.enum.message_role import MessageRole
 from fastapi import HTTPException
+from app.services.llm_service import LLMService
 
 
 class ChatService:
     def __init__(
-        self, conversation_service: ConversationService, message_service: MessageService
+        self,
+        conversation_service: ConversationService,
+        message_service: MessageService,
+        llm_service: LLMService,
     ):
         self.conversation_service = conversation_service
         self.message_service = message_service
+        self.llm_service = llm_service
 
     def chat(
         self,
@@ -35,13 +40,17 @@ class ChatService:
             role=MessageRole.USER,
         )
 
+        assistant_reply = self.llm_service.generate_response(
+            prompt=request.message,
+        )
+
         self.message_service.create_message(
-            content="Hello! I'm your AI assistant.",
+            content=assistant_reply,
             conversation_id=conversation.id,
             role=MessageRole.ASSISTANT,
         )
 
         return ChatResponse(
-            message="Hello! I'm your AI assistant.",
+            message=assistant_reply,
             conversation_id=conversation.id,
         )
