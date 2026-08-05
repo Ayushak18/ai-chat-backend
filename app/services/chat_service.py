@@ -4,6 +4,7 @@ from app.schemas.chat import ChatRequest, ChatResponse
 from app.enum.message_role import MessageRole
 from fastapi import HTTPException
 from app.services.llm_service import LLMService
+from app.database.models import Message
 
 
 class ChatService:
@@ -40,9 +41,14 @@ class ChatService:
             role=MessageRole.USER,
         )
 
-        assistant_reply = self.llm_service.generate_response(
-            prompt=request.message,
+        messages = self.message_service.get_messages_by_conversation_id(
+            conversation_id=conversation.id,
+            current_user_id=current_user_id,
         )
+
+        llm_messages = self._build_llm_messages(messages=messages)
+
+        assistant_reply = self.llm_service.generate_response(messages=llm_messages)
 
         self.message_service.create_message(
             content=assistant_reply,
@@ -54,3 +60,17 @@ class ChatService:
             message=assistant_reply,
             conversation_id=conversation.id,
         )
+
+    def _build_llm_messages(self, messages: list[Message]) -> list[dict]:
+        llm_messages = []
+
+        for message in messages:
+
+            llm_messages.append(
+                {
+                    "role": message.role.value,
+                    "content": message.content,
+                }
+            )
+
+        return llm_messages

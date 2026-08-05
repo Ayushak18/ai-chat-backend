@@ -7,15 +7,10 @@ class LLMService:
     def __init__(self):
         self.client = Groq(api_key=settings.llm_api_key)
 
-    def generate_response(self, prompt: str) -> str:
+    def generate_response(self, messages: list[dict]) -> str:
         response = self.client.chat.completions.create(
             model=settings.llm_model,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ],
+            messages=messages,
         )
 
         return response.choices[0].message.content
