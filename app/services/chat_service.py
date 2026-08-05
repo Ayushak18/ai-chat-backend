@@ -48,7 +48,9 @@ class ChatService:
 
         llm_messages = self._build_llm_messages(messages=messages)
 
-        assistant_reply = self.llm_service.generate_response(messages=llm_messages)
+        assistant_reply = self.llm_service.generate_response(
+            messages=llm_messages[-10:]
+        )
 
         self.message_service.create_message(
             content=assistant_reply,
