@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from app.dependencies.auth import get_current_user
 from app.database.models import User
 from app.services.chat_service import ChatService
@@ -19,3 +20,19 @@ def chat(
         current_user_id=current_user.id,
     )
     return response
+
+
+@router.post("/stream")
+def stream_chat(
+    request: ChatRequest,
+    current_user: User = Depends(get_current_user),
+    chat_service: ChatService = Depends(get_chat_service),
+):
+    generator_response = chat_service.stream_chat(
+        request=request,
+        current_user_id=current_user.id,
+    )
+    return StreamingResponse(
+        generator_response,
+        media_type="text/plain",
+    )

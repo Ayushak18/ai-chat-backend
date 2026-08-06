@@ -5,6 +5,7 @@ from app.enum.message_role import MessageRole
 from fastapi import HTTPException
 from app.services.llm_service import LLMService
 from app.database.models import Message
+from collections.abc import Generator
 
 
 class ChatService:
@@ -76,3 +77,48 @@ class ChatService:
             )
 
         return llm_messages
+
+    def stream_chat(
+        self,
+        request: ChatRequest,
+        current_user_id: int,
+    ) -> Generator[str, None, None]:
+
+        full_response = ""
+
+        if request.conversation_id is None:
+            conversation = self.conversation_service.create_conversation(
+                title="New Chat", user_id=current_user_id
+            )
+
+        else:
+            conversation = self.conversation_service.get_conversation_by_id(
+                request.conversation_id
+            )
+            if conversation is None or conversation.user_id != current_user_id:
+                raise HTTPException(status_code=404, detail="Conversation not found")
+
+        self.message_service.create_message(
+            content=request.message,
+            conversation_id=conversation.id,
+            role=MessageRole.USER,
+        )
+
+        messages = self.message_service.get_messages_by_conversation_id(
+            conversation_id=conversation.id,
+            current_user_id=current_user_id,
+        )
+
+        llm_messages = self._build_llm_messages(messages=messages)
+
+        stream = self.llm_service.generate_stream(messages=llm_messages[-5:])
+
+        for chunk in stream:
+            full_response += chunk
+            yield chunk
+
+        self.message_service.create_message(
+            content=full_response,
+            conversation_id=conversation.id,
+            role=MessageRole.ASSISTANT,
+        )

@@ -1,5 +1,6 @@
 from groq import Groq
 from app.config.settings import settings
+from collections.abc import Generator
 
 
 class LLMService:
@@ -14,3 +15,12 @@ class LLMService:
         )
 
         return response.choices[0].message.content
+
+    def generate_stream(self, messages: list[dict]) -> Generator[str, None, None]:
+        stream = self.client.chat.completions.create(
+            model=settings.llm_model, messages=messages, stream=True
+        )
+        for chunk in stream:
+            content = chunk.choices[0].delta.content
+            if content is not None:
+                yield content
