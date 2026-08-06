@@ -113,12 +113,16 @@ class ChatService:
 
         stream = self.llm_service.generate_stream(messages=llm_messages[-5:])
 
-        for chunk in stream:
-            full_response += chunk
-            yield chunk
+        try:
+            for chunk in stream:
+                full_response += chunk
+                yield chunk
 
-        self.message_service.create_message(
-            content=full_response,
-            conversation_id=conversation.id,
-            role=MessageRole.ASSISTANT,
-        )
+            self.message_service.create_message(
+                content=full_response,
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+            )
+        except Exception as e:
+            print(f"Streaming Error: {e}")
+            raise
