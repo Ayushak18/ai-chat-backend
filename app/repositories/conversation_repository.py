@@ -26,9 +26,25 @@ class ConversationRepository:
         result = self.db.execute(statement)
         return result.scalars().all()
 
-    def create_conversation(self, title: str, user_id: int) -> Conversation:
-        new_conversation = Conversation(title=title, user_id=user_id)
-        self.db.add(new_conversation)
+    def update_summary(
+        self,
+        conversation_id: int,
+        summary: str,
+        summary_upto_message_id: int,
+    ) -> Conversation | None:
+        conversation = select(Conversation).where(Conversation.id == conversation_id)
+        result = self.db.execute(conversation)
+
+        conversation = result.scalar_one_or_none()
+
+        if conversation is None:
+
+            return None
+
+        conversation.summary = summary
+        conversation.summary_upto_message_id = summary_upto_message_id
+
         self.db.commit()
-        self.db.refresh(new_conversation)
-        return new_conversation
+        self.db.refresh(conversation)
+
+        return conversation

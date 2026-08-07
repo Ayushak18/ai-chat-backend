@@ -20,8 +20,14 @@ class ConversationService:
         )
         return conversation
 
-    def create_conversation(self, title: str, user_id: int) -> Conversation:
-        return self.conversation_repository.create_conversation(
-            title=title,
-            user_id=user_id,
+    def update_summary(
+        self,
+        conversation_id: int,
+        summary: str,
+        summary_upto_message_id: int,
+    ) -> Conversation | None:
+        return self.conversation_repository.update_summary(
+            conversation_id=conversation_id,
+            summary=summary,
+            summary_upto_message_id=summary_upto_message_id,
         )

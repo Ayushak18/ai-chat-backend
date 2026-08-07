@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from app.services.llm_service import LLMService
 from app.database.models import Message
 from collections.abc import Generator
+from app.mapper.llm_mapper import build_llm_messages
 
 
 class ChatService:
@@ -47,7 +48,7 @@ class ChatService:
             current_user_id=current_user_id,
         )
 
-        llm_messages = self._build_llm_messages(messages=messages)
+        llm_messages = build_llm_messages(messages=messages)
 
         assistant_reply = self.llm_service.generate_response(
             messages=llm_messages[-10:]
@@ -63,20 +64,6 @@ class ChatService:
             message=assistant_reply,
             conversation_id=conversation.id,
         )
-
-    def _build_llm_messages(self, messages: list[Message]) -> list[dict]:
-        llm_messages = []
-
-        for message in messages:
-
-            llm_messages.append(
-                {
-                    "role": message.role.value,
-                    "content": message.content,
-                }
-            )
-
-        return llm_messages
 
     def stream_chat(
         self,
@@ -109,7 +96,7 @@ class ChatService:
             current_user_id=current_user_id,
         )
 
-        llm_messages = self._build_llm_messages(messages=messages)
+        llm_messages = build_llm_messages(messages=messages)
 
         stream = self.llm_service.generate_stream(messages=llm_messages[-5:])
 
