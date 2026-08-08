@@ -43,3 +43,22 @@ class MessageRepository:
         result = self.db.execute(statement)
 
         return result.scalars().all()
+
+    def get_recent_messages_after_message_id(
+        self,
+        conversation_id: int,
+        message_id: int | None,
+        limit: int,
+    ) -> list[Message]:
+        statement = select(Message).where(Message.conversation_id == conversation_id)
+
+        if message_id is not None:
+            statement = statement.where(Message.id > message_id)
+
+        statement = statement.order_by(Message.created_at.desc()).limit(limit)
+
+        result = self.db.execute(statement)
+
+        messages = result.scalars().all()
+
+        return list(reversed(messages))

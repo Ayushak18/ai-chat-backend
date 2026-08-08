@@ -4,9 +4,9 @@ from app.schemas.chat import ChatRequest, ChatResponse
 from app.enum.message_role import MessageRole
 from fastapi import HTTPException
 from app.services.llm_service import LLMService
-from app.database.models import Message
 from collections.abc import Generator
-from app.mapper.llm_mapper import build_llm_messages
+from app.services.summary_service import SummaryService
+from app.mapper.chat_context_mapper import build_chat_context
 
 
 class ChatService:
@@ -15,10 +15,12 @@ class ChatService:
         conversation_service: ConversationService,
         message_service: MessageService,
         llm_service: LLMService,
+        summary_service: SummaryService,
     ):
         self.conversation_service = conversation_service
         self.message_service = message_service
         self.llm_service = llm_service
+        self.summary_service = summary_service
 
     def chat(
         self,
@@ -43,15 +45,19 @@ class ChatService:
             role=MessageRole.USER,
         )
 
-        messages = self.message_service.get_messages_by_conversation_id(
+        messages = self.message_service.get_recent_messages_after_message_id(
             conversation_id=conversation.id,
-            current_user_id=current_user_id,
+            message_id=conversation.summary_upto_message_id,
+            limit=10,
         )
 
-        llm_messages = build_llm_messages(messages=messages)
+        llm_messages = build_chat_context(
+            conversation=conversation,
+            messages=messages,
+        )
 
         assistant_reply = self.llm_service.generate_response(
-            messages=llm_messages[-10:]
+            messages=llm_messages,
         )
 
         self.message_service.create_message(
@@ -59,6 +65,9 @@ class ChatService:
             conversation_id=conversation.id,
             role=MessageRole.ASSISTANT,
         )
+
+        if self.summary_service.should_summarize(conversation.id):
+            self.summary_service.update_summary(conversation.id)
 
         return ChatResponse(
             message=assistant_reply,
@@ -91,14 +100,18 @@ class ChatService:
             role=MessageRole.USER,
         )
 
-        messages = self.message_service.get_messages_by_conversation_id(
+        messages = self.message_service.get_recent_messages_after_message_id(
             conversation_id=conversation.id,
-            current_user_id=current_user_id,
+            message_id=conversation.summary_upto_message_id,
+            limit=10,
         )
 
-        llm_messages = build_llm_messages(messages=messages)
+        llm_messages = build_chat_context(
+            conversation=conversation,
+            messages=messages,
+        )
 
-        stream = self.llm_service.generate_stream(messages=llm_messages[-5:])
+        stream = self.llm_service.generate_stream(messages=llm_messages)
 
         try:
             for chunk in stream:
@@ -110,6 +123,8 @@ class ChatService:
                 conversation_id=conversation.id,
                 role=MessageRole.ASSISTANT,
             )
+            if self.summary_service.should_summarize(conversation.id):
+                self.summary_service.update_summary(conversation.id)
         except Exception as e:
             print(f"Streaming Error: {e}")
             raise

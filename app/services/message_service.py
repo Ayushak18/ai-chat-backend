@@ -41,5 +41,19 @@ class MessageService:
         message_id: int | None,
     ) -> list[Message]:
         return self.message_repository.get_messages_after_message_id(
-            conversation_id=conversation_id, message_id=message_id
+            conversation_id=conversation_id,
+            message_id=message_id,
+        )
+
+    def get_recent_messages_after_message_id(
+        self,
+        conversation_id: int,
+        message_id: int | None,
+        limit: int,
+    ) -> list[Message]:
+
+        return self.message_repository.get_recent_messages_after_message_id(
+            conversation_id=conversation_id,
+            message_id=message_id,
+            limit=limit,
         )
