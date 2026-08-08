@@ -1,7 +1,7 @@
 from app.database.models import Message
 
 
-def build_llm_messages(self, messages: list[Message]) -> list[dict]:
+def build_llm_messages(messages: list[Message]) -> list[dict]:
     llm_messages = []
 
     for message in messages:
